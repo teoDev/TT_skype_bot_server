@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
 @RestController
-public class SkypeBotApplication {
+public class SkypeBotApplication   {
 	@RequestMapping("/")
 	public String greeting() {
 		return "Hello docker";
@@ -15,4 +15,5 @@ public class SkypeBotApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(SkypeBotApplication.class, args);
 	}
+
 }
