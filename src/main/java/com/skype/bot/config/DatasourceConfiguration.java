@@ -6,10 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.EntityManager;
+import javax.transaction.Transactional;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by surmab on 24.11.2016.
@@ -18,6 +18,7 @@ import java.util.Random;
 public class DatasourceConfiguration implements CommandLineRunner {
     @Autowired
     private AnswerRepository answerRepository;
+
     @Autowired
     private CategoryRepository categoryRepository;
     @Autowired
@@ -30,44 +31,48 @@ public class DatasourceConfiguration implements CommandLineRunner {
     List<User> users;
     List<Category> categories = new ArrayList<>();
     List<Question> questions = new ArrayList<>();
-    List<Answer> answers;
-    List<Tag> tags;
+    Set<Answer> answers;
+    Set<Tag> tags;
     Random generator = new Random();
 
     @Override
     public void run(String... strings) throws Exception {
-        users = createUsers();
-
-        createCategories();
-        answers = createAnswers();
-        createQuestions();
-        tags = createTags();
-        questionRepository.deleteAll();
-        userRepository.deleteAll();
-        answerRepository.deleteAll();
-        tagRepository.deleteAll();
-        categoryRepository.deleteAll();
-
-        // save a couple of customers
-        userRepository.save(users);
-        answerRepository.save(answers);
-        questionRepository.save(questions);
-        categoryRepository.save(categories);
-        tagRepository.save(tags);
-
-        // fetch all customers
-        System.out.println("Customers found with findAll():");
-        System.out.println("-------------------------------");
-        for (Question question : questionRepository.findAll()) {
-            System.out.println(question);
-        }
-        System.out.println();
+//        users = createUsers();
+//
+//        createCategories();
+//        tags = createTags();
+//
+////        categoryRepository.deleteAll();
+////
+//        answers = createAnswers();
+//        createQuestions();
+////        questionRepository.deleteAll();
+////        userRepository.deleteAll();
+////        answerRepository.deleteAll();
+////        tagRepository.deleteAll();
+//
+//        // save a couple of customers
+//        userRepository.save(users);
+//        categoryRepository.save(categories);
+//        //tagRepository.save(tags);
+//        //answerRepository.save(answers);
+////        questionRepository.save(questions);
+//
+//        // fetch all customers
+//        System.out.println("Customers found with findAll():");
+//        System.out.println("-------------------------------");
+//        for (Question question : questionRepository.findAll()) {
+//            System.out.println(question);
+//        }
+//        System.out.println();
     }
 
     public List<User> createUsers() {
         List<User> users = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            User user = new User(i, randomString(10), randomString(10));
+            User user = new User();
+            user.setPassword(randomString(10));
+            user.setUsername(randomString(10));
             users.add(user);
         }
         return users;
@@ -75,31 +80,57 @@ public class DatasourceConfiguration implements CommandLineRunner {
 
     public void createQuestions() {
         for (int i = 0; i < 10; i++) {
-            Question question = new Question(i, randomString(20), answers, createTags());
+            Question question = new Question();
+            question.setQuestion(randomString(20));
+            question.setTags(createTags());
+            question.setAnswers(createAnswers());
             questions.add(question);
         }
     }
 
-    public List<Answer> createAnswers() {
-        List<Answer> answers = new ArrayList<>();
+    public Set<Answer> createAnswers() {
+        Set<Answer> answers = new HashSet<>();
+        AnswerContent answerContent = new AnswerContent();
+        answerContent.setType(AnswerContent.ContentType.TXT);
+        answerContent.setText("response");
+        AnswerContent answerContent2 = new AnswerContent();
+        answerContent2.setType(AnswerContent.ContentType.TEXT);
+        answerContent2.setText("srutututu");
+        AnswerContent answerContent3 = new AnswerContent();
+        answerContent3.setType(AnswerContent.ContentType.GIF);
+        answerContent3.setText("smieszne-obrazki-i-gify-kot-sylwester-tanczy");
+
         for (int i = 0; i < 10; i++) {
-            Answer answer = new Answer(i, randomString(10), users.get(i), generator.nextInt(10));
+            Answer answer = new Answer();
+            int ii = generator.nextInt(3);
+            if (ii==0){
+                answer.setContent(answerContent);
+            }else if (ii==2){
+                answer.setContent(answerContent2);
+            }else{
+                answer.setContent(answerContent3);
+            }
+            answer.setGrade(generator.nextInt(10));
+            answer.setAuthor(users.get(generator.nextInt(10)));
             answers.add(answer);
         }
         return answers;
     }
 
-    public List<Tag> createTags() {
-        List<Tag> tags = new ArrayList<>();
+    public Set<Tag> createTags() {
+        Set<Tag> tags = new HashSet<>();
         for (int i = 0; i < 10; i++) {
-            Tag tag = new Tag(i, randomString(5), categories.get(generator.nextInt(10)));
+            Tag tag = new Tag();
+            tag.setName(randomString(10));
+            tag.setCategory(categories.get(generator.nextInt(10)));
             tags.add(tag);
         }
         return tags;
     }
     public void createCategories() {
         for (int i = 0; i < 10; i++) {
-            Category category = new Category(i, randomString(5));
+            Category category = new Category();
+            category.setName(randomString(10));
             categories.add(category);
         }
     }
